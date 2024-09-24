@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamr Video Stream</title>
+    <script src="https://unpkg.com/@streamr/sdk"></script>
+</head>
+<body>
+    <video id="video" controls autoplay></video>
+    <script>
+        const StreamrClient = require('@streamr/sdk');
+        const streamr = new StreamrClient();
+
+        // Create a MediaSource object
+        const mediaSource = new MediaSource();
+        const videoElement = document.getElementById('video');
+        videoElement.src = URL.createObjectURL(mediaSource);
+
+        mediaSource.addEventListener('sourceopen', () => {
+            const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.42E01E, mp4a.40.2"');
+            let currentSegmentIndex = 0;
+
+            // Subscribe to the Streamr stream
+            streamr.subscribe('0x5dbef432d012c8d20993214f2c3765e9cf83d180/signature-amoy', (video) => {
+                // Assuming the incoming message is in base64 format
+                const base64Data = video.split(',')[1]; // Remove the data URL prefix
+                const blob = base64ToBlob(base64Data); // Convert base64 to Blob
+
+                // Append the Blob to the SourceBuffer
+                sourceBuffer.appendBuffer(blob);
+            });
+
+            sourceBuffer.addEventListener('updateend', () => {
+                // Check if more data can be appended
+                if (mediaSource.readyState === 'open') {
+                    // Close the MediaSource if you don't expect more data
+                    // mediaSource.endOfStream(); 
+                }
+            });
+        });
+
+        // Function to convert base64 to Blob
+        function base64ToBlob(base64) {
+            const byteCharacters = atob(base64);
+            const byteNumbers = new Uint8Array(byteCharacters.length);
+
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+
+            return new Blob([byteNumbers], { type: 'video/mp4' }); // Change MIME type as needed
+        }
+
+        // Handle errors
+        streamr.onError((error) => {
+            console.error('Streamr error:', error);
+        });
+
+    </script>
+</body>
+</html>
