@@ -1,8 +1,8 @@
-const apiKey = 'MTA2NjFkYTlkNmMxNDY0MTlkODVhNGE5MjYyN2NkNTk';
+const apiKey = 'MDQxYWYxMjM3ZWY4NGYyMGJjNjAyOTc0YjJhYzhiZDY';
 const streamId = encodeURIComponent('0x5dbef432d012c8d20993214f2c3765e9cf83d180/signature-amoy');
 
 // Connect to the WebSocket plugin on your Streamr node
-const pub = new WebSocket(`ws://localhost:7170/streams/${streamId}/publish?apiKey=${apiKey}`);
+const pub = new WebSocket(`ws://35.224.225.183:7170/streams/${streamId}/publish?apiKey=${apiKey}`);
 
 let isWebSocketOpen = false;
 
@@ -51,16 +51,16 @@ function convertToBase64(blob) {
             console.error('WebSocket is not open. Cannot send data.');
         }
 
-        displayBase64Data(base64String);
+        // displayBase64Data(base64String);
     };
     reader.readAsDataURL(blob);
 }
 
-function displayBase64Data(base64Data) {
-    const chunksContainer = document.getElementById('chunksContainer');
-    const base64Text = document.createElement('p');
-    base64Text.textContent = base64Data;
-    chunksContainer.appendChild(base64Text);
-}
+// function displayBase64Data(base64Data) {
+//     const chunksContainer = document.getElementById('chunksContainer');
+//     const base64Text = document.createElement('p');
+//     base64Text.textContent = base64Data;
+//     chunksContainer.appendChild(base64Text);
+// }
 
 window.onload = startVideoStream;
