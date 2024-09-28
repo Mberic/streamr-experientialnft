@@ -2,7 +2,7 @@ const apiKey = 'YmJhOTAxNGRmYjJkNDk1YWEzMmQxZTBlZmM4YTM5M2I';
 const streamId = encodeURIComponent('0x5dbef432d012c8d20993214f2c3765e9cf83d180/signature-amoy');
 
 // Connect to the WebSocket plugin on your Streamr node
-const pub = new WebSocket(`wss://35.224.225.183:7170/streams/${streamId}/publish?apiKey=${apiKey}`);
+const pub = new WebSocket(`wss://adjusted-bass-scarcely.ngrok-free.app/streams/${streamId}/publish?apiKey=${apiKey}`);
 
 let isWebSocketOpen = false;
 
