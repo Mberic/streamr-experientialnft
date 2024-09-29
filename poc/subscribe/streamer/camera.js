@@ -49,39 +49,83 @@ const avatarSvgs = {
   'tom-nook': tomNookSVG.default,
 };
 
-/**
- * Loads a the camera to be used in the demo
- *
- */
-async function setupCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    throw new Error(
-        'Browser API navigator.mediaDevices.getUserMedia not available');
-  }
+const apiKey = 'YmJhOTAxNGRmYjJkNDk1YWEzMmQxZTBlZmM4YTM5M2I';
+const streamId = encodeURIComponent('0x5dbef432d012c8d20993214f2c3765e9cf83d180/signature-amoy');
+const sub = new WebSocket(`wss://adjusted-bass-scarcely.ngrok-free.app/streams/${streamId}/subscribe?apiKey=${apiKey}`);
 
-  const video = document.getElementById('video');
-  video.width = videoWidth;
-  video.height = videoHeight;
+const videoElement = document.getElementById('video');
+const buffer = []; // Buffer to store incoming base64 video segments
 
-  const stream = await navigator.mediaDevices.getUserMedia({
-    'audio': false,
-    'video': {
-      facingMode: 'user',
-      width: videoWidth,
-      height: videoHeight,
-    },
-  });
-  video.srcObject = stream;
-
-  return new Promise((resolve) => {
-    video.onloadedmetadata = () => {
-      resolve(video);
+    sub.onopen = () => {
+        console.log("WebSocket connection established");
     };
-  });
-}
+
+    // Handle incoming WebSocket messages with base64 video data
+    sub.onmessage = (event) => {
+        console.log('Received message:', event.data);
+
+        try {
+            const parsedData = JSON.parse(event.data);
+            if (parsedData.video) {
+                const base64Data = parsedData.video.trim();
+                console.log('Base64 string length:', base64Data.length);
+
+                // Add the base64 video segment to the buffer
+                buffer.push(base64Data);
+
+            } else {
+                console.error('No video data in the WebSocket message');
+            }
+        } catch (error) {
+            console.error('Error processing video segment:', error);
+        }
+    };
+
+  // Handle WebSocket connection errors
+  sub.onerror = (error) => {
+      console.error('WebSocket Error:', error);
+  };
+
+  // Handle WebSocket connection closure
+  sub.onclose = () => {
+      console.log('WebSocket connection closed');
+  };
+  async function setupVideo() {
+    const video = document.getElementById('video');
+    video.width = videoWidth;
+    video.height = videoHeight;
+  
+    // Wait until the buffer has data
+    while (buffer.length === 0) {
+      console.log('Buffer is empty, waiting for new segments...');
+      await new Promise((resolve) => setTimeout(resolve, 50)); // Wait for 500ms before checking again
+    }
+  
+    const base64Data = buffer.shift(); // Remove the oldest segment from the buffer
+  
+    // Create a Blob from the base64 video text
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'video/mp4' });
+  
+    // Create a URL for the blob and set it as the video source
+    const blobURL = URL.createObjectURL(blob);
+    video.src = blobURL;
+  
+    return new Promise((resolve) => {
+      video.onloadedmetadata = () => {
+        resolve(video);
+      };
+    });
+  }
+  
 
 async function loadVideo() {
-  const video = await setupCamera();
+  const video = await setupVideo();
   video.play();
 
   return video;
@@ -109,14 +153,6 @@ function setupGui(cameras) {
     guiState.camera = cameras[0].deviceId;
   }
 
-  // const gui = new dat.GUI({width: 300});
-
-  // let multi = gui.addFolder('Image');
-  // gui.add(guiState, 'avatarSVG', Object.keys(avatarSvgs)).onChange(async () => {
-  //   await parseSVG(avatarSvgs[guiState.avatarSVG]);
-  //   // sendState();  // Notify the peer about the new SVG
-  // });
-  // multi.open();
 }
 
 
