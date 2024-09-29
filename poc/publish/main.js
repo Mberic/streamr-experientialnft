@@ -27,7 +27,7 @@ async function startVideoStream() {
         videoElement.srcObject = stream;
 
         const mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.start(2000);
+        mediaRecorder.start(5000);
 
         mediaRecorder.ondataavailable = (event) => {
             if (event.data.size > 0) {
